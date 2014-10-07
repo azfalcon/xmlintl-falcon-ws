@@ -44,7 +44,10 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
 
         this.tgtSegment = tgtSegment;
     }
-    
+    /**
+     * Update the SMT engine by outputing the source and target ten times to affect the probability calculations.
+     * @throws FalconException If any errors are encoutered.
+     */
     public void update() throws FalconException
     {
         String scriptsDir = properties.getProperty(SCRIPTS_DIR);
