@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ListEnginesWSService" targetNamespace="http://ws.falcon.xmlintl.com/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://ws.falcon.xmlintl.com/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <schema xmlns="http://www.w3.org/2001/XMLSchema">
+<import namespace="http://ws.falcon.xmlintl.com/" schemaLocation="listenginesws_schema1.xsd"/>
+</schema>
+  </wsdl:types>
+  <wsdl:message name="init">
+    <wsdl:part name="parameters" element="tns:init">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ServletException">
+    <wsdl:part name="ServletException" element="tns:ServletException">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="initResponse">
+    <wsdl:part name="parameters" element="tns:initResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ListEnginesWS">
+    <wsdl:operation name="init">
+      <wsdl:input name="init" message="tns:init">
+    </wsdl:input>
+      <wsdl:output name="initResponse" message="tns:initResponse">
+    </wsdl:output>
+      <wsdl:fault name="ServletException" message="tns:ServletException">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ListEnginesWSServiceSoapBinding" type="tns:ListEnginesWS">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="init">
+      <soap:operation soapAction="urn:Init" style="document"/>
+      <wsdl:input name="init">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="initResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="ServletException">
+        <soap:fault name="ServletException" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ListEnginesWSService">
+    <wsdl:port name="ListEnginesWSPort" binding="tns:ListEnginesWSServiceSoapBinding">
+      <soap:address location="http://localhost:8080/com.xmlintl.falcon.ws/services/ListEnginesWSPort"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

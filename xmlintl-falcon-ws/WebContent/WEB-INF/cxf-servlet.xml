@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:soap="http://cxf.apache.org/bindings/soap"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd">
+	<jaxws:endpoint xmlns:tns="http://ws.falcon.xmlintl.com/"
+		id="listenginesws" implementor="com.xmlintl.falcon.ws.ListEnginesWS"
+		wsdlLocation="wsdl/listenginesws.wsdl" endpointName="tns:ListEnginesWSPort"
+		serviceName="tns:ListEnginesWSService" address="/ListEnginesWSPort">
+		<jaxws:features>
+			<bean class="org.apache.cxf.feature.LoggingFeature" />
+		</jaxws:features>
+	</jaxws:endpoint>
+	<jaxws:endpoint xmlns:tns="http://ws.falcon.xmlintl.com/"
+		id="translatesegmentws" implementor="com.xmlintl.falcon.ws.TranslateSegmentWS"
+		wsdlLocation="wsdl/translatesegmentws.wsdl" endpointName="tns:TranslateSegmentWSPort"
+		serviceName="tns:TranslateSegmentWSService" address="/TranslateSegmentWSPort">
+		<jaxws:features>
+			<bean class="org.apache.cxf.feature.LoggingFeature" />
+		</jaxws:features>
+	</jaxws:endpoint>
+	<jaxws:endpoint xmlns:tns="http://ws.falcon.xmlintl.com/"
+		id="sendsegmenttoupdatesmtws" implementor="com.xmlintl.falcon.ws.SendSegmentToUpdateSMTWS"
+		wsdlLocation="wsdl/sendsegmenttoupdatesmtws.wsdl" endpointName="tns:SendSegmentToUpdateSMTWSPort"
+		serviceName="tns:SendSegmentToUpdateSMTWSService" address="/SendSegmentToUpdateSMTWSPort">
+		<jaxws:features>
+			<bean class="org.apache.cxf.feature.LoggingFeature" />
+		</jaxws:features>
+	</jaxws:endpoint>
+</beans>

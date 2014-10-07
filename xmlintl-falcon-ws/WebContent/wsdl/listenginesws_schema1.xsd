@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://ws.falcon.xmlintl.com/" attributeFormDefault="unqualified" elementFormDefault="unqualified" targetNamespace="http://ws.falcon.xmlintl.com/">
+  <xs:element name="init" type="tns:init"/>
+  <xs:element name="initResponse" type="tns:initResponse"/>
+  <xs:complexType name="init">
+    <xs:sequence/>
+  </xs:complexType>
+  <xs:complexType name="initResponse">
+    <xs:sequence/>
+  </xs:complexType>
+  <xs:element name="ServletException" type="tns:ServletException"/>
+  <xs:complexType name="ServletException">
+    <xs:sequence/>
+  </xs:complexType>
+</xs:schema>
