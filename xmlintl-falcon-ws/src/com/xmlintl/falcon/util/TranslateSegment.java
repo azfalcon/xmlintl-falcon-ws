@@ -79,7 +79,9 @@ public class TranslateSegment extends FalconAbstract
         
         String engine = customerID + '/' + srcLang + '_' + tgtLang;
         
-        ProcessBuilder pb = new ProcessBuilder(execScript, engine, srcSegment, uuid);
+        String srcSegmentLC = srcSegment.toLowerCase();
+        
+        ProcessBuilder pb = new ProcessBuilder(execScript, engine, srcSegmentLC, uuid);
         
         InputStream is = null;
         
