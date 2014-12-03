@@ -18,6 +18,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 /**
  * Translate the segment.
  *
@@ -43,6 +47,7 @@ public class TranslateSegment extends FalconAbstract
     protected String bleuScore;
     
     protected String uuid;
+    
     /**
      * Constructor.
      * @param engineID The SMT engine ID. 

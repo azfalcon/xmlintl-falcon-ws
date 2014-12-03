@@ -11,28 +11,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.xmlintl.falcon.util.FalconException;
 import com.xmlintl.falcon.util.TranslateSegment;
 
 /**
- * Servlet implementation class TranslateSegmentWS
+ * Servlet implementation class CalculateOptimalSegmentSequenceWS
  */
-@WebService(targetNamespace = "http://ws.falcon.xmlintl.com/", portName = "TranslateSegmentWSPort", serviceName = "TranslateSegmentWSService")
-@WebServlet("/TranslateSegmentWS")
-public class TranslateSegmentWS extends HttpServlet {
+@WebService(targetNamespace = "http://ws.falcon.xmlintl.com/", portName = "CalculateOptimalSegmentSequenceWSPort", serviceName = "CalculateOptimalSegmentSequenceWSService")
+@WebServlet("/CalculateOptimalSegmentSequenceWS")
+public class CalculateOptimalSegmentSequenceWS extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public TranslateSegmentWS() {
+    public CalculateOptimalSegmentSequenceWS() {
         super();
         // TODO Auto-generated constructor stub
     }
-    
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,43 +42,31 @@ public class TranslateSegmentWS extends HttpServlet {
         response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
         
-		String engineID = request.getParameter("engineID");
-		String customerID = request.getParameter("customerID");
-		String projectID = request.getParameter("projectID");
-		String srcLang = request.getParameter("srcLang");
-		String tgtLang = request.getParameter("tgtLang");
-		String segment = request.getParameter("segment");
-		
-		try
+        String engineID = request.getParameter("engineID");
+        String customerID = request.getParameter("customerID");
+        String projectID = request.getParameter("projectID");
+        String srcLang = request.getParameter("srcLang");
+        String tgtLang = request.getParameter("tgtLang");
+        String textFileURL = request.getParameter("url");
+        
+        try
         {
-		    TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, projectID, srcLang, tgtLang, segment);
-
-	        GsonBuilder gsonBuilder = new GsonBuilder();
-	        
-	        gsonBuilder.setPrettyPrinting();
-	        
-	        Gson gson = gsonBuilder.create();
-
-	        JsonObject jsonObject = new JsonObject();
-	        
-	        String uuid = translateSegment.getUuid();
-	        
-	        jsonObject.addProperty("UUID", uuid);
-	        
-	        String translation = translateSegment.translate();
-	        
-	        jsonObject.addProperty("translation", translation);
-	        
-	        String json = gson.toJson(jsonObject);
+            TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, projectID, srcLang, tgtLang, textFileURL);
             
-            out.println(json);
+            String uuid = translateSegment.getUuid();
+            
+            out.println("UUID: " + uuid);
+            
+            String translation = translateSegment.translate();
+            
+            out.println("TRANSLATION FOR UUID: " + uuid + " IS: " + translation);
         }
         catch (FalconException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-	}
+    }
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
