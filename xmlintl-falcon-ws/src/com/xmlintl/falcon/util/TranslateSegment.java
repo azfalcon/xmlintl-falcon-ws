@@ -13,10 +13,19 @@ import static com.xmlintl.falcon.util.CommonDefines.OUTPUT;
 import static com.xmlintl.falcon.util.CommonDefines.SCRIPTS_DIR;
 import static com.xmlintl.falcon.util.CommonDefines.SEGMENT_DECODE;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
+
+import sun.nio.cs.StandardCharsets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,7 +53,7 @@ public class TranslateSegment extends FalconAbstract
     
     protected String translation;
     
-    protected String bleuScore;
+    protected String confidenceScore;
     
     protected String uuid;
     
@@ -84,9 +93,9 @@ public class TranslateSegment extends FalconAbstract
         
         String engine = customerID + '/' + srcLang + '_' + tgtLang;
         
-        String srcSegmentLC = srcSegment.toLowerCase();
-        
-        ProcessBuilder pb = new ProcessBuilder(execScript, engine, srcSegmentLC, uuid);
+        // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
+
+        ProcessBuilder pb = new ProcessBuilder(execScript, engine, srcSegment, uuid);
         
         InputStream is = null;
         
@@ -104,13 +113,12 @@ public class TranslateSegment extends FalconAbstract
             {
                 if (outputLine.startsWith(OUTPUT))
                 {
-                    translation = outputLine.substring(OUTPUT.length() - 1);
+                    translation = outputLine.substring(OUTPUT.length() + 1);
                 }
                 else if (outputLine.startsWith(BLEU))
                 {
-                    bleuScore = outputLine.substring(BLEU.length() - 1);
+                    confidenceScore = outputLine.substring(BLEU.length());
                 }
-                
             }
         }
         catch (Exception e)
@@ -134,6 +142,7 @@ public class TranslateSegment extends FalconAbstract
 
         return translation;
     }
+    
     /**
      * Get the uuid.
      * @return the uuid.
@@ -141,5 +150,21 @@ public class TranslateSegment extends FalconAbstract
     public String getUuid()
     {
         return uuid;
+    }
+    /**
+     * Get the translation.
+     * @return the translation.
+     */
+    public String getTranslation()
+    {
+        return translation;
+    }
+    /**
+     * Get the bleuScore.
+     * @return the bleuScore.
+     */
+    public String getBleuScore()
+    {
+        return confidenceScore;
     }
 }
