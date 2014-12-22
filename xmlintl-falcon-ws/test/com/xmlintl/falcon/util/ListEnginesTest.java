@@ -23,11 +23,11 @@ public class ListEnginesTest
     {
         try
         {
-            ListEngines listEngines = new ListEngines();
+            ListEngines listEngines = new ListEngines("2147");
             
-            ArrayList<String> list = listEngines.list();
+            ArrayList<SMTEngine> list = listEngines.list();
             
-            for (String engine: list)
+            for (SMTEngine engine: list)
             {
                 logger.info(engine);
             }

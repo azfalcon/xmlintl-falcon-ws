@@ -27,4 +27,13 @@
 			<bean class="org.apache.cxf.feature.LoggingFeature" />
 		</jaxws:features>
 	</jaxws:endpoint>
+	<jaxws:endpoint xmlns:tns="http://ws.falcon.xmlintl.com/"
+		id="calculateoptimalsegmentsequencews" implementor="com.xmlintl.falcon.ws.CalculateOptimalSegmentSequenceWS"
+		wsdlLocation="wsdl/calculateoptimalsegmentsequencews.wsdl"
+		endpointName="tns:CalculateOptimalSegmentSequenceWSPort" serviceName="tns:CalculateOptimalSegmentSequenceWSService"
+		address="/CalculateOptimalSegmentSequenceWSPort">
+		<jaxws:features>
+			<bean class="org.apache.cxf.feature.LoggingFeature" />
+		</jaxws:features>
+	</jaxws:endpoint>
 </beans>

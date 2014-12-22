@@ -13,23 +13,10 @@ import static com.xmlintl.falcon.util.CommonDefines.OUTPUT;
 import static com.xmlintl.falcon.util.CommonDefines.SCRIPTS_DIR;
 import static com.xmlintl.falcon.util.CommonDefines.SEGMENT_DECODE;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.XMLEvent;
-
-import sun.nio.cs.StandardCharsets;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 
 /**
  * Translate the segment.
@@ -41,13 +28,6 @@ public class TranslateSegment extends FalconAbstract
 {
     protected String engineID;
     
-    protected String customerID;
-    
-    protected String projectID;
-    
-    protected String srcLang;
-    
-    protected String tgtLang;
     
     protected String srcSegment;
     
@@ -60,22 +40,14 @@ public class TranslateSegment extends FalconAbstract
     /**
      * Constructor.
      * @param engineID The SMT engine ID. 
-     * @param customerID The customer ID.
-     * @param projectID The project ID. Ignored for now for future use.
-     * @param srcLang The source language.
-     * @param tgtLang The target language.
      * @param srcSegment The source segment.
      * @throws FalconException If we cannot initialize the Falcon properties environment correctly.
      */
-    public TranslateSegment(String engineID, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment) throws FalconException
+    public TranslateSegment(String engineID, String srcSegment) throws FalconException
     {
         super();
         
         this.engineID = engineID;
-        this.customerID = customerID;
-        this.projectID = projectID;
-        this.srcLang = srcLang;
-        this.tgtLang = tgtLang;
         this.srcSegment = srcSegment;
         
         uuid = FalconUtil.getUUID();
@@ -91,11 +63,9 @@ public class TranslateSegment extends FalconAbstract
         
         String execScript = scriptsDir + SEGMENT_DECODE;
         
-        String engine = customerID + '/' + srcLang + '_' + tgtLang;
-        
         // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
 
-        ProcessBuilder pb = new ProcessBuilder(execScript, engine, srcSegment, uuid);
+        ProcessBuilder pb = new ProcessBuilder(execScript, engineID, srcSegment, uuid);
         
         InputStream is = null;
         

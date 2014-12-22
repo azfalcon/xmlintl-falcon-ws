@@ -32,5 +32,24 @@ public class FalconUtil
         
         return uuid.toString();
     }
-
+    /**
+     * Get the language portion of the locale code, e.g. en_US -> en.
+     * @param locale The original locale code.
+     * @return The language element of the locale.
+     */
+    public static String languageOnly(String locale)
+    {
+        String lang = null;
+        
+        if (locale.length() > 3)
+        {
+            lang = locale.substring(0, 2);
+        }
+        else if (locale.length() == 2)
+        {
+            lang = locale;
+        }
+        
+        return lang;
+    }
 }

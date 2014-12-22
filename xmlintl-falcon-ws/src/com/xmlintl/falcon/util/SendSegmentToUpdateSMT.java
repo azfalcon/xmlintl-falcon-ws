@@ -28,6 +28,10 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
     
     private String tgtSegment;
     
+    private String srcLang;
+    
+    private String tgtLang;
+    
     /**
      * Constructor.
      * @param engineID The SMT engine ID. 
@@ -40,7 +44,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
      */
     public SendSegmentToUpdateSMT(String engineID, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment, String tgtSegment) throws FalconException
     {
-        super(engineID, customerID, projectID, srcLang, tgtLang, srcSegment);
+        super(engineID, srcSegment);
 
         this.tgtSegment = tgtSegment;
     }
@@ -54,9 +58,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         
         String execScript = scriptsDir + INC_TRAIN;
         
-        String engine = customerID + '/' + srcLang + '_' + tgtLang;
-        
-        String newData = engine + "/new_data";
+        String newData = engineID + "/new_data";
         
         File nd = new File(newData);
         
@@ -111,7 +113,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
                 
             }
             // "Usage: `basename $0` <src_lang> <tgt_lang> <train_filename> <engine_name>"
-            ProcessBuilder pb = new ProcessBuilder(execScript, srcLang, tgtLang, uuid, engine);
+            ProcessBuilder pb = new ProcessBuilder(execScript, srcLang, tgtLang, uuid, engineID);
             
             Process decoder = pb.start();
 

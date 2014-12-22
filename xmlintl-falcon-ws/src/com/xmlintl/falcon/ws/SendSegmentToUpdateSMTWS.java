@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.xmlintl.falcon.util.FalconException;
 import com.xmlintl.falcon.util.SendSegmentToUpdateSMT;
 
@@ -33,13 +36,21 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+	       doPost(request, response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Set a cookie for the user, so that the counter does not increate
         // every time the user press refresh
         HttpSession session = request.getSession(true);
         // Set the session valid for 5 secs
         session.setMaxInactiveInterval(5);
-        response.setContentType("text/plain;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         PrintWriter out = response.getWriter();
         
         String engineID = request.getParameter("engineID");
@@ -50,30 +61,34 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         String srcSegment = request.getParameter("srcSegment");
         String tgtSegment = request.getParameter("tgtSegment");
         
+        GsonBuilder gsonBuilder = new GsonBuilder();
+
+//        gsonBuilder.setPrettyPrinting();
+
+        Gson gson = gsonBuilder.create();
+        
+        JsonObject jsonObject = new JsonObject();
+        
         try
         {
             SendSegmentToUpdateSMT updateSMT = new SendSegmentToUpdateSMT(engineID, customerID, projectID, srcLang, tgtLang, srcSegment, tgtSegment);
             
             String uuid = updateSMT.getUuid();
-            
-            out.println("UUID: " + uuid);
-            
-            updateSMT.update();
-            
-            out.println("UPDATE FOR UUID: " + uuid + " COMPLETED ");
+
+            jsonObject.addProperty("UUID", uuid);
+            String json = gson.toJson(jsonObject);
+
+            out.println(json);
         }
         catch (FalconException e)
         {
-            // TODO Auto-generated catch block
+            jsonObject.addProperty("error", "FAILED");
+            String json = gson.toJson(jsonObject);
+
+            out.println(json);
+            
             e.printStackTrace();
         }
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
+    }
 
 }

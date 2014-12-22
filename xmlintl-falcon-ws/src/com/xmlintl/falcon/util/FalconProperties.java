@@ -21,6 +21,10 @@ import java.util.Properties;
 public class FalconProperties extends Properties
 {
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1662129323210004394L;
+    /**
      * Constructor.
      * @throws FalconException If we are unable to load the properties.
      */

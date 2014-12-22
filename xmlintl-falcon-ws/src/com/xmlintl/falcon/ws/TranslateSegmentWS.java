@@ -22,59 +22,78 @@ import com.xmlintl.falcon.util.TranslateSegment;
  */
 @WebService(targetNamespace = "http://ws.falcon.xmlintl.com/", portName = "TranslateSegmentWSPort", serviceName = "TranslateSegmentWSService")
 @WebServlet("/TranslateSegmentWS")
-public class TranslateSegmentWS extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
+public class TranslateSegmentWS extends HttpServlet
+{
+    private static final long serialVersionUID = 1L;
+
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public TranslateSegmentWS() {
+    public TranslateSegmentWS()
+    {
         super();
         // TODO Auto-generated constructor stub
     }
-    
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    /**
+     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        doPost(request, response);
+    }
+
+    /**
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+
         // Set a cookie for the user, so that the counter does not increate
         // every time the user press refresh
         HttpSession session = request.getSession(true);
         // Set the session valid for 5 secs
         session.setMaxInactiveInterval(5);
-        response.setContentType("text/plain;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        
-		String engineID = request.getParameter("engineID");
-		String customerID = request.getParameter("customerID");
-		String projectID = request.getParameter("projectID");
-		String srcLang = request.getParameter("srcLang");
-		String tgtLang = request.getParameter("tgtLang");
-		String segment = request.getParameter("segment");
-		
-		try
+
+        String engineID = request.getParameter("engineID");
+        String segment = request.getParameter("segment");
+
+        System.out.println("engineID: " + engineID);
+        System.out.println("segment: " + segment);
+
+        try
         {
-		    TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, projectID, srcLang, tgtLang, segment);
+            TranslateSegment translateSegment = new TranslateSegment(engineID, segment);
 
-	        GsonBuilder gsonBuilder = new GsonBuilder();
-	        
-	        gsonBuilder.setPrettyPrinting();
-	        
-	        Gson gson = gsonBuilder.create();
+            GsonBuilder gsonBuilder = new GsonBuilder();
 
-	        JsonObject jsonObject = new JsonObject();
-	        
-	        String uuid = translateSegment.getUuid();
-	        
-	        jsonObject.addProperty("UUID", uuid);
-	        
-	        String translation = translateSegment.translate();
-	        
-	        jsonObject.addProperty("translation", translation);
-	        
-	        String json = gson.toJson(jsonObject);
-            
+//            gsonBuilder.setPrettyPrinting();
+
+            Gson gson = gsonBuilder.create();
+
+            JsonObject jsonObject = new JsonObject();
+
+            String uuid = translateSegment.getUuid();
+
+            jsonObject.addProperty("UUID", uuid);
+
+            translateSegment.translate();
+
+            String translation = translateSegment.getTranslation();
+
+            jsonObject.addProperty("translation", translation);
+
+            String confidenceScore = translateSegment.getBleuScore();
+
+            if (confidenceScore != null)
+            {
+                jsonObject.addProperty("confidenceScore", confidenceScore);
+            }
+
+            String json = gson.toJson(jsonObject);
+
             out.println(json);
         }
         catch (FalconException e)
@@ -82,13 +101,6 @@ public class TranslateSegmentWS extends HttpServlet {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
+    }
 
 }

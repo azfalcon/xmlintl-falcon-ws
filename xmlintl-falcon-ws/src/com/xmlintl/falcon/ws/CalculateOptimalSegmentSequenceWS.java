@@ -11,8 +11,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.xmlintl.falcon.util.CalculateOptimalSegmentSequence;
 import com.xmlintl.falcon.util.FalconException;
-import com.xmlintl.falcon.util.TranslateSegment;
 
 /**
  * Servlet implementation class CalculateOptimalSegmentSequenceWS
@@ -33,13 +36,21 @@ public class CalculateOptimalSegmentSequenceWS extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+	       doPost(request, response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Set a cookie for the user, so that the counter does not increate
         // every time the user press refresh
         HttpSession session = request.getSession(true);
         // Set the session valid for 5 secs
         session.setMaxInactiveInterval(5);
-        response.setContentType("text/plain;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         PrintWriter out = response.getWriter();
         
         String engineID = request.getParameter("engineID");
@@ -49,30 +60,44 @@ public class CalculateOptimalSegmentSequenceWS extends HttpServlet {
         String tgtLang = request.getParameter("tgtLang");
         String textFileURL = request.getParameter("url");
         
+        GsonBuilder gsonBuilder = new GsonBuilder();
+
+//        gsonBuilder.setPrettyPrinting();
+
+        Gson gson = gsonBuilder.create();
+
+        JsonObject jsonObject = new JsonObject();
+        
         try
         {
-            TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, projectID, srcLang, tgtLang, textFileURL);
+            CalculateOptimalSegmentSequence  optimalRouteObject = new CalculateOptimalSegmentSequence(engineID, customerID, projectID, srcLang, tgtLang, textFileURL);
             
-            String uuid = translateSegment.getUuid();
+            String uuid = optimalRouteObject.getUuid();
+
+            jsonObject.addProperty("UUID", uuid);
             
-            out.println("UUID: " + uuid);
-            
-            String translation = translateSegment.translate();
-            
-            out.println("TRANSLATION FOR UUID: " + uuid + " IS: " + translation);
+            int[] route = optimalRouteObject.getRoute();
+
+            String jsonText = gson.toJson(route);
+
+            jsonObject.addProperty("route", jsonText);
+
+            String json = gson.toJson(jsonObject);
+
+            out.println(json);
         }
         catch (FalconException e)
         {
-            // TODO Auto-generated catch block
+            getServletContext().log("An exception occurred in CalculateOptimalSegmentSequenceWS", e);
+            
             e.printStackTrace();
+            
+            jsonObject.addProperty("error", "FAILED");
+
+            String json = gson.toJson(jsonObject);
+
+            out.println(json);
         }
     }
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
 
 }
