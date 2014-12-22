@@ -56,8 +56,6 @@ public class ListEngines extends FalconAbstract
             throw new FalconException("Empty directory");
         }
         
-        File engineMapFile = new File(rootDir + "/EngineMapFile");
-        
         for (File client: clients)
         {
             if (!client.isDirectory())
