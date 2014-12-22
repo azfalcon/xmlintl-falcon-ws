@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="CalculateOptimalSegmentSequenceWSService" targetNamespace="http://ws.falcon.xmlintl.com/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://ws.falcon.xmlintl.com/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:portType name="CalculateOptimalSegmentSequenceWS">
+  </wsdl:portType>
+  <wsdl:binding name="CalculateOptimalSegmentSequenceWSServiceSoapBinding" type="tns:CalculateOptimalSegmentSequenceWS">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+  <wsdl:service name="CalculateOptimalSegmentSequenceWSService">
+    <wsdl:port name="CalculateOptimalSegmentSequenceWSPort" binding="tns:CalculateOptimalSegmentSequenceWSServiceSoapBinding">
+      <soap:address location="http://localhost:9090/CalculateOptimalSegmentSequenceWSPort"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
