@@ -83,7 +83,16 @@ public class TranslateSegment extends FalconAbstract
             {
                 if (outputLine.startsWith(OUTPUT))
                 {
-                    translation = outputLine.substring(OUTPUT.length() + 1);
+                    if (outputLine.length() > OUTPUT.length() + 1)
+                    {
+                        translation = outputLine.substring(OUTPUT.length() + 1);
+                    }
+                    else
+                    {
+                        reader.close();
+                        
+                        throw new FalconException("Translation segment decode failed");
+                    }
                 }
                 else if (outputLine.startsWith(BLEU))
                 {

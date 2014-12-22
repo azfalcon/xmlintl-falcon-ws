@@ -63,17 +63,21 @@ public class TranslateSegmentWS extends HttpServlet
         System.out.println("engineID: " + engineID);
         System.out.println("segment: " + segment);
 
+        JsonObject jsonObject = new JsonObject();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+
+//      gsonBuilder.setPrettyPrinting();
+
+        Gson gson = gsonBuilder.create();
+
         try
         {
             TranslateSegment translateSegment = new TranslateSegment(engineID, segment);
 
-            GsonBuilder gsonBuilder = new GsonBuilder();
+            gson = gsonBuilder.create();
 
-//            gsonBuilder.setPrettyPrinting();
-
-            Gson gson = gsonBuilder.create();
-
-            JsonObject jsonObject = new JsonObject();
+            jsonObject = new JsonObject();
 
             String uuid = translateSegment.getUuid();
 
@@ -100,6 +104,14 @@ public class TranslateSegmentWS extends HttpServlet
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            
+            getServletContext().log("An exception occurred in ListEnginesWS", e);
+            
+            jsonObject.addProperty("error", "FAILED");
+
+            String json = gson.toJson(jsonObject);
+
+            out.println(json);
         }
     }
 
