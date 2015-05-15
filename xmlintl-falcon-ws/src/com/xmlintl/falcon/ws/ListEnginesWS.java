@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.xmlintl.falcon.util.FalconException;
-import com.xmlintl.falcon.util.FalconUtil;
 import com.xmlintl.falcon.util.ListEngines;
 import com.xmlintl.falcon.util.SMTEngine;
 
@@ -92,15 +91,15 @@ public class ListEnginesWS extends HttpServlet
 
         String jsonText = gson.toJson(engines);
         
-        String uuid = FalconUtil.getUUID();
-        
-        jsonObject.addProperty("UUID", uuid);
-        
-        jsonObject.addProperty("engines", jsonText);
+//        String uuid = FalconUtil.getUUID();
+//        
+//        jsonObject.addProperty("UUID", uuid);
+//        
+//        jsonObject.addProperty("engines", jsonText);
+//
+//        String json = gson.toJson(jsonObject);
 
-        String json = gson.toJson(jsonObject);
-
-        out.println(json);
+        out.println(jsonText);
     }
 
 }
