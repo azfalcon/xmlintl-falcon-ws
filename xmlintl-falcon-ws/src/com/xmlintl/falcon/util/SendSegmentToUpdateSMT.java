@@ -10,6 +10,7 @@ package com.xmlintl.falcon.util;
 
 import static com.xmlintl.falcon.util.CommonDefines.INC_TRAIN;
 import static com.xmlintl.falcon.util.CommonDefines.SCRIPTS_DIR;
+import static com.xmlintl.falcon.util.CommonDefines.SMT_ENGINES_ROOT_DIR;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,7 +59,9 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         
         String execScript = scriptsDir + INC_TRAIN;
         
-        String newData = engineID + "/new_data";
+        String enginesDir = properties.getProperty(SMT_ENGINES_ROOT_DIR);
+        
+        String newData = enginesDir + engineID + "/new_data";
         
         File nd = new File(newData);
         
