@@ -19,9 +19,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
+import java.net.URLDecoder;
 
 /**
  * @author andrzejzydron
+ * @uthor ankitks 24th JUne 2015
  *
  */
 public class SendSegmentToUpdateSMT extends TranslateSegment
@@ -85,11 +87,13 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
             os = new OutputStreamWriter( new FileOutputStream(ndfs));
             ot = new OutputStreamWriter( new FileOutputStream(ndft));
             
-            for (int i = 0; i < 10; i++)
-            {
-                os.write(srcSegment + "\n");
-                ot.write(tgtSegment + "\n");
-            }
+            // Remove the loop, we no longer need to biase it 10 times
+            // URLDecoder.decode ensures the escaped characters like %20 are converted 
+            //for (int i = 0; i < 10; i++)
+            //{
+            os.write(URLDecoder.decode(srcSegment, "UTF-8") + "\n");
+            ot.write(URLDecoder.decode(tgtSegment, "UTF-8") + "\n");
+            //}
             
             if (os != null)
             {
