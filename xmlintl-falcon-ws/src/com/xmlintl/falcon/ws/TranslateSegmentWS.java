@@ -81,7 +81,7 @@ public class TranslateSegmentWS extends HttpServlet
 
         try
         {
-            TranslateSegment translateSegment = new TranslateSegment(engineID, segment);
+            TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, segment);
 
             gson = gsonBuilder.create();
 
