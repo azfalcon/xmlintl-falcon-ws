@@ -61,7 +61,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         
         String enginesDir = properties.getProperty(SMT_ENGINES_ROOT_DIR);
         
-        String newData = enginesDir + engineID + "/new_data";
+        String newData = enginesDir + engineID + "/new_data/";
         
         File nd = new File(newData);
         
@@ -70,8 +70,8 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
             nd.mkdir();
         }
         
-        String srcTrainFilename = uuid + "." + srcLang;
-        String tgtTrainFilename = uuid + "." + tgtLang;
+        String srcTrainFilename = newData + uuid + "." + srcLang;
+        String tgtTrainFilename = newData + uuid + "." + tgtLang;
         
         File ndfs = new File(srcTrainFilename);
         File ndft = new File(tgtTrainFilename);
