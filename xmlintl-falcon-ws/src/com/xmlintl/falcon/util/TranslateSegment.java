@@ -68,7 +68,7 @@ public class TranslateSegment extends FalconAbstract
         
         // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
 
-        ProcessBuilder pb = new ProcessBuilder(execScript, engineID, customerID, srcSegment, uuid);
+        ProcessBuilder pb = new ProcessBuilder(execScript, engineID, srcSegment, uuid, customerID);
         
         InputStream is = null;
         
