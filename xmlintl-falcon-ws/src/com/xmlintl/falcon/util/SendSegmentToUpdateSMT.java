@@ -47,7 +47,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
      */
     public SendSegmentToUpdateSMT(String engineID, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment, String tgtSegment) throws FalconException
     {
-        super(engineID, srcSegment);
+        super(engineID, customerID, srcSegment);
 
         this.tgtSegment = tgtSegment;
     }
@@ -63,7 +63,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         
         String enginesDir = properties.getProperty(SMT_ENGINES_ROOT_DIR);
         
-        String newData = enginesDir + engineID + "/new_data";
+        String newData = enginesDir + customerID + "/" + srcLang + "_" + tgtLang + "/new_data";
         
         File nd = new File(newData);
         
@@ -120,7 +120,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
                 
             }
             // "Usage: `basename $0` <src_lang> <tgt_lang> <train_filename> <engine_name>"
-            ProcessBuilder pb = new ProcessBuilder(execScript, srcLang, tgtLang, uuid, engineID);
+            ProcessBuilder pb = new ProcessBuilder(execScript, srcLang, tgtLang, uuid, engineID, customerID);
             
             Process decoder = pb.start();
 
