@@ -28,6 +28,7 @@ public class TranslateSegment extends FalconAbstract
 {
     protected String engineID;
     
+    protected String customerID;
     
     protected String srcSegment;
     
@@ -40,14 +41,16 @@ public class TranslateSegment extends FalconAbstract
     /**
      * Constructor.
      * @param engineID The SMT engine ID. 
+     * @param customerID The Customer ID
      * @param srcSegment The source segment.
      * @throws FalconException If we cannot initialize the Falcon properties environment correctly.
      */
-    public TranslateSegment(String engineID, String srcSegment) throws FalconException
+    public TranslateSegment(String engineID, String customerID, String srcSegment) throws FalconException
     {
         super();
         
         this.engineID = engineID;
+        this.customerID = customerID;
         this.srcSegment = srcSegment;
         
         uuid = FalconUtil.getUUID();
@@ -65,7 +68,7 @@ public class TranslateSegment extends FalconAbstract
         
         // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
 
-        ProcessBuilder pb = new ProcessBuilder(execScript, engineID, srcSegment, uuid);
+        ProcessBuilder pb = new ProcessBuilder(execScript, engineID, srcSegment, uuid, customerID);
         
         InputStream is = null;
         
