@@ -38,6 +38,7 @@ public class TranslateSegmentWS extends HttpServlet
     /**
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         doPost(request, response);
@@ -46,6 +47,7 @@ public class TranslateSegmentWS extends HttpServlet
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
 
@@ -59,9 +61,15 @@ public class TranslateSegmentWS extends HttpServlet
 
         String engineID = request.getParameter("engineID");
         String segment = request.getParameter("segment");
+        String customerID = request.getParameter("customerID");
+        String srcLang = request.getParameter("srcLang");
+        String tgtLang = request.getParameter("tgtLang");
 
-        System.out.println("engineID: " + engineID);
-        System.out.println("segment: " + segment);
+        log("engineID: " + engineID);
+        log("customerID: " + customerID);
+        log("srcLang: " + srcLang);
+        log("tgtLang: " + tgtLang);
+        log("segment: " + segment);
 
         JsonObject jsonObject = new JsonObject();
 
@@ -73,7 +81,7 @@ public class TranslateSegmentWS extends HttpServlet
 
         try
         {
-            TranslateSegment translateSegment = new TranslateSegment(engineID, segment);
+            TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, segment);
 
             gson = gsonBuilder.create();
 
@@ -86,6 +94,8 @@ public class TranslateSegmentWS extends HttpServlet
             translateSegment.translate();
 
             String translation = translateSegment.getTranslation();
+            
+            log("translation: " + translation);
 
             jsonObject.addProperty("translation", translation);
 

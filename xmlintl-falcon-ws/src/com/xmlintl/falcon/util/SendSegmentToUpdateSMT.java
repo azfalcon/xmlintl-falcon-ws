@@ -10,6 +10,7 @@ package com.xmlintl.falcon.util;
 
 import static com.xmlintl.falcon.util.CommonDefines.INC_TRAIN;
 import static com.xmlintl.falcon.util.CommonDefines.SCRIPTS_DIR;
+import static com.xmlintl.falcon.util.CommonDefines.SMT_ENGINES_ROOT_DIR;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,9 +19,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
+import java.net.URLDecoder;
 
 /**
  * @author andrzejzydron
+ * @uthor ankitks 24th JUne 2015
  *
  */
 public class SendSegmentToUpdateSMT extends TranslateSegment
@@ -44,7 +47,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
      */
     public SendSegmentToUpdateSMT(String engineID, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment, String tgtSegment) throws FalconException
     {
-        super(engineID, srcSegment);
+        super(engineID, customerID, srcSegment);
 
         this.tgtSegment = tgtSegment;
     }
@@ -58,7 +61,9 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         
         String execScript = scriptsDir + INC_TRAIN;
         
-        String newData = engineID + "/new_data";
+        String enginesDir = properties.getProperty(SMT_ENGINES_ROOT_DIR);
+        
+        String newData = enginesDir + customerID + "/" + srcLang + "_" + tgtLang + "/new_data";
         
         File nd = new File(newData);
         
@@ -82,11 +87,13 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
             os = new OutputStreamWriter( new FileOutputStream(ndfs));
             ot = new OutputStreamWriter( new FileOutputStream(ndft));
             
-            for (int i = 0; i < 10; i++)
-            {
-                os.write(srcSegment + "\n");
-                ot.write(tgtSegment + "\n");
-            }
+            // Remove the loop, we no longer need to biase it 10 times
+            // URLDecoder.decode ensures the escaped characters like %20 are converted 
+            //for (int i = 0; i < 10; i++)
+            //{
+            os.write(URLDecoder.decode(srcSegment, "UTF-8") + "\n");
+            ot.write(URLDecoder.decode(tgtSegment, "UTF-8") + "\n");
+            //}
             
             if (os != null)
             {
@@ -113,7 +120,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
                 
             }
             // "Usage: `basename $0` <src_lang> <tgt_lang> <train_filename> <engine_name>"
-            ProcessBuilder pb = new ProcessBuilder(execScript, srcLang, tgtLang, uuid, engineID);
+            ProcessBuilder pb = new ProcessBuilder(execScript, srcLang, tgtLang, uuid, engineID, customerID);
             
             Process decoder = pb.start();
 
