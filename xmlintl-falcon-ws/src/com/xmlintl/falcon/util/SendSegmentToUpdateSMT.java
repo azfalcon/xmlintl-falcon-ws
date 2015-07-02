@@ -45,11 +45,12 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
      * @param srcLang The source language.
      * @param tgtLang The target language.
      * @param srcSegment The source segment.
+     * @param key The uuid token key value.
      * @throws FalconException If we cannot initialize the Falcon properties environment correctly.
      */
-    public SendSegmentToUpdateSMT(String clientName, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment, String tgtSegment) throws FalconException
+    public SendSegmentToUpdateSMT(String clientName, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment, String tgtSegment, String key) throws FalconException
     {
-        super(clientName, customerID, srcLang, tgtLang, srcSegment);
+        super(clientName, customerID, srcLang, tgtLang, srcSegment, key);
         
         this.projectID = projectID;
         this.srcLang = srcLang;

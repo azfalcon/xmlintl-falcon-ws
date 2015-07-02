@@ -12,11 +12,16 @@ import static com.xmlintl.falcon.util.CommonDefines.BLEU;
 import static com.xmlintl.falcon.util.CommonDefines.OUTPUT;
 import static com.xmlintl.falcon.util.CommonDefines.SCRIPTS_DIR;
 import static com.xmlintl.falcon.util.CommonDefines.SEGMENT_DECODE;
+import static com.xmlintl.falcon.util.CommonDefines.SMT_ENGINES_ROOT_DIR;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.HashMap;
 
 /**
  * Translate the segment.
@@ -26,6 +31,9 @@ import java.io.LineNumberReader;
  */
 public class TranslateSegment extends FalconAbstract
 {
+    /** Hash map of clientName and key values so that we do not have to constantly re-read the uuid files. */
+    protected static HashMap<String, String> keyMap = new HashMap<String, String>();
+    
     protected String clientName;
     
     protected String customerID;
@@ -42,6 +50,8 @@ public class TranslateSegment extends FalconAbstract
     
     protected String uuid;
     
+    protected String key;
+    
     /**
      * Constructor.
      * @param clientName The SMT engine ID. 
@@ -49,9 +59,10 @@ public class TranslateSegment extends FalconAbstract
      * @param srcLang The source language.
      * @param tgtLang The target language.
      * @param srcSegment The source segment.
+     * @param key The token key value.
      * @throws FalconException If we cannot initialize the Falcon properties environment correctly.
      */
-    public TranslateSegment(String clientName, String customerID, String srcLang, String tgtLang, String srcSegment) throws FalconException
+    public TranslateSegment(String clientName, String customerID, String srcLang, String tgtLang, String srcSegment, String key) throws FalconException
     {
         super();
         
@@ -61,7 +72,61 @@ public class TranslateSegment extends FalconAbstract
         this.tgtLang = tgtLang;
         this.srcSegment = srcSegment;
         
+        this.key = key;
+        
+        if (key != null)
+        {
+            checkKey(key);
+        }
+        
         uuid = FalconUtil.getUUID();
+    }
+    
+    private void checkKey(String key) throws FalconException
+    {
+        String testKey = keyMap.get(clientName);
+        
+        if (testKey == null)
+        {
+            String enginesDir = properties.getProperty(SMT_ENGINES_ROOT_DIR);
+            
+            String uuidFileName = enginesDir + "/" + clientName + "/uuid";
+            
+            File uuidFile = new File(uuidFileName);
+            
+            StringBuilder uuidBuilder = new StringBuilder();
+            
+            try
+            {
+                try (FileInputStream is = new FileInputStream(uuidFile))
+                {
+                    for (int i = 0; (i = is.read()) != -1;)
+                    {
+                        char c = (char) i;
+                        
+                        uuidBuilder.append(c);
+                    }
+                    
+                    testKey = uuidBuilder.toString();
+                    
+                    keyMap.put(clientName, testKey);
+                }
+            }
+            catch (FileNotFoundException e)
+            {
+                throw new FalconException("Client: " + clientName + " uuid file: " + uuidFileName + " is missing");
+            }
+            catch (IOException e)
+            {
+                throw new FalconException(e.getMessage(), e);
+            }
+        }
+        
+        if (!(key.equals(testKey)))
+        {
+            throw new FalconException("Client key: " + testKey + " does not match web service call key: " + key);
+        }
+
     }
     /**
      * Do the translating.
@@ -75,6 +140,8 @@ public class TranslateSegment extends FalconAbstract
         String execScript = scriptsDir + SEGMENT_DECODE;
         
         // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
+        
+        log("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + " " + tgtLang + " " + srcSegment + " " + uuid );
 
         ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang, srcSegment, uuid);
         

@@ -65,6 +65,7 @@ public class TranslateSegmentWS extends HttpServlet
         String customerID = request.getParameter("customerID");
         String srcLang = request.getParameter("srcLang");
         String tgtLang = request.getParameter("tgtLang");
+        String key = request.getParameter("key");
 
         log("clientName: " + clientName);
         log("engineID: " + engineID);
@@ -83,7 +84,7 @@ public class TranslateSegmentWS extends HttpServlet
 
         try
         {
-            TranslateSegment translateSegment = new TranslateSegment(clientName, customerID, srcLang, tgtLang, segment);
+            TranslateSegment translateSegment = new TranslateSegment(clientName, customerID, srcLang, tgtLang, segment, key);
 
             gson = gsonBuilder.create();
 

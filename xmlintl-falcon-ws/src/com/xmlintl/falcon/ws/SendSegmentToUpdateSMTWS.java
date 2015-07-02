@@ -60,7 +60,8 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         String tgtLang = request.getParameter("tgtLang");
         String srcSegment = request.getParameter("srcSegment");
         String tgtSegment = request.getParameter("tgtSegment");
-        
+        String key = request.getParameter("key");
+       
         log("clientName: " + clientName);
         log("customerID: " + customerID);
         log("srcLang: " + srcLang);
@@ -78,7 +79,7 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         
         try
         {
-            SendSegmentToUpdateSMT updateSMT = new SendSegmentToUpdateSMT(clientName, customerID, projectID, srcLang, tgtLang, srcSegment, tgtSegment);
+            SendSegmentToUpdateSMT updateSMT = new SendSegmentToUpdateSMT(clientName, customerID, projectID, srcLang, tgtLang, srcSegment, tgtSegment, key);
             
             updateSMT.update();
             

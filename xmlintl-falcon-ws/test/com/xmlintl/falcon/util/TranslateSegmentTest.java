@@ -39,7 +39,7 @@ public class TranslateSegmentTest
     {
         try
         {
-            TranslateSegment xlate = new TranslateSegment("2147/en-GB_fr-FR", "Hello World");
+            TranslateSegment xlate = new TranslateSegment("Falcon", "2147", "en", "es", "Hello World", "ce4259bd-b307-4707-accb-b6504677d94c");
             
             String xlation = xlate.translate();
             
