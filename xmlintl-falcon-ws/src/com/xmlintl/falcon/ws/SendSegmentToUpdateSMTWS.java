@@ -53,7 +53,7 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
         PrintWriter out = response.getWriter();
         
-        String engineID = request.getParameter("engineID");
+        String clientName = request.getParameter("clientName");
         String customerID = request.getParameter("customerID");
         String projectID = request.getParameter("projectID");
         String srcLang = request.getParameter("srcLang");
@@ -61,7 +61,14 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         String srcSegment = request.getParameter("srcSegment");
         String tgtSegment = request.getParameter("tgtSegment");
         
-        GsonBuilder gsonBuilder = new GsonBuilder();
+        log("clientName: " + clientName);
+        log("customerID: " + customerID);
+        log("srcLang: " + srcLang);
+        log("tgtLang: " + tgtLang);
+        log("srcSegment: " + srcSegment);
+        log("tgtSegment: " + tgtSegment);
+               
+       GsonBuilder gsonBuilder = new GsonBuilder();
 
 //        gsonBuilder.setPrettyPrinting();
 
@@ -71,7 +78,9 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         
         try
         {
-            SendSegmentToUpdateSMT updateSMT = new SendSegmentToUpdateSMT(engineID, customerID, projectID, srcLang, tgtLang, srcSegment, tgtSegment);
+            SendSegmentToUpdateSMT updateSMT = new SendSegmentToUpdateSMT(clientName, customerID, projectID, srcLang, tgtLang, srcSegment, tgtSegment);
+            
+            updateSMT.update();
             
             String uuid = updateSMT.getUuid();
 
@@ -82,6 +91,8 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         }
         catch (FalconException e)
         {
+            getServletContext().log("An exception occurred in SendSegmentToUpdateSMTWS", e);
+
             jsonObject.addProperty("error", "FAILED");
             String json = gson.toJson(jsonObject);
 

@@ -26,9 +26,13 @@ import java.io.LineNumberReader;
  */
 public class TranslateSegment extends FalconAbstract
 {
-    protected String engineID;
+    protected String clientName;
     
     protected String customerID;
+    
+    protected String srcLang;
+    
+    protected String tgtLang;
     
     protected String srcSegment;
     
@@ -40,17 +44,21 @@ public class TranslateSegment extends FalconAbstract
     
     /**
      * Constructor.
-     * @param engineID The SMT engine ID. 
+     * @param clientName The SMT engine ID. 
      * @param customerID The Customer ID
+     * @param srcLang The source language.
+     * @param tgtLang The target language.
      * @param srcSegment The source segment.
      * @throws FalconException If we cannot initialize the Falcon properties environment correctly.
      */
-    public TranslateSegment(String engineID, String customerID, String srcSegment) throws FalconException
+    public TranslateSegment(String clientName, String customerID, String srcLang, String tgtLang, String srcSegment) throws FalconException
     {
         super();
         
-        this.engineID = engineID;
+        this.clientName = clientName;
         this.customerID = customerID;
+        this.srcLang = srcLang;
+        this.tgtLang = tgtLang;
         this.srcSegment = srcSegment;
         
         uuid = FalconUtil.getUUID();
@@ -68,7 +76,7 @@ public class TranslateSegment extends FalconAbstract
         
         // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
 
-        ProcessBuilder pb = new ProcessBuilder(execScript, engineID, srcSegment, uuid, customerID);
+        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang, srcSegment, uuid);
         
         InputStream is = null;
         

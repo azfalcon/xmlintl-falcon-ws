@@ -60,11 +60,13 @@ public class TranslateSegmentWS extends HttpServlet
         PrintWriter out = response.getWriter();
 
         String engineID = request.getParameter("engineID");
+        String clientName = request.getParameter("clientName");
         String segment = request.getParameter("segment");
         String customerID = request.getParameter("customerID");
         String srcLang = request.getParameter("srcLang");
         String tgtLang = request.getParameter("tgtLang");
 
+        log("clientName: " + clientName);
         log("engineID: " + engineID);
         log("customerID: " + customerID);
         log("srcLang: " + srcLang);
@@ -81,7 +83,7 @@ public class TranslateSegmentWS extends HttpServlet
 
         try
         {
-            TranslateSegment translateSegment = new TranslateSegment(engineID, customerID, segment);
+            TranslateSegment translateSegment = new TranslateSegment(clientName, customerID, srcLang, tgtLang, segment);
 
             gson = gsonBuilder.create();
 
@@ -115,7 +117,7 @@ public class TranslateSegmentWS extends HttpServlet
             // TODO Auto-generated catch block
             e.printStackTrace();
             
-            getServletContext().log("An exception occurred in ListEnginesWS", e);
+            getServletContext().log("An exception occurred in TranslateSegmentWS", e);
             
             jsonObject.addProperty("error", "FAILED");
 

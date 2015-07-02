@@ -40,4 +40,12 @@ public abstract class FalconAbstract
         }
 
     }
+    /**
+     * Log message.
+     * @param message The message,
+     */
+    public void log(String message)
+    {
+        System.out.println(message);
+    }
 }
