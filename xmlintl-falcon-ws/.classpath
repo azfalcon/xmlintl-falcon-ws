@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="src" path="config"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v7.0">
 		<attributes>
 			<attribute name="owner.project.facets" value="jst.web"/>
@@ -23,5 +23,25 @@
 	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/log4j-1.2.15.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/gson-2.3.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/xmlintl-libs"/>
+	<classpathentry kind="lib" path="libs/babelnet-api-3.0.jar"/>
+	<classpathentry kind="lib" path="libs/jltutils-2.0.4.jar"/>
+	<classpathentry kind="lib" path="libs/commons-beanutils-1.7.0.jar"/>
+	<classpathentry kind="lib" path="libs/commons-beanutils-core-1.7.0.jar"/>
+	<classpathentry kind="lib" path="libs/commons-codec-1.8.jar"/>
+	<classpathentry kind="lib" path="libs/commons-collections-3.2.jar"/>
+	<classpathentry kind="lib" path="libs/commons-configuration-1.5.jar"/>
+	<classpathentry kind="lib" path="libs/commons-digester-1.8.jar"/>
+	<classpathentry kind="lib" path="libs/commons-lang-2.3.jar"/>
+	<classpathentry kind="lib" path="libs/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="libs/gson-2.2.4.jar"/>
+	<classpathentry kind="lib" path="libs/guava-18.0.jar"/>
+	<classpathentry kind="lib" path="libs/httpclient-4.3.6.jar"/>
+	<classpathentry kind="lib" path="libs/httpcore-4.3.3.jar"/>
+	<classpathentry kind="lib" path="libs/jwi-2.1.4.jar"/>
+	<classpathentry kind="lib" path="libs/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="libs/log4j-api-2.1.jar"/>
+	<classpathentry kind="lib" path="libs/log4j-core-2.1.jar"/>
+	<classpathentry kind="lib" path="libs/lucene-analyzers-common-4.9.0.jar"/>
+	<classpathentry kind="lib" path="libs/lucene-core-4.9.0.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

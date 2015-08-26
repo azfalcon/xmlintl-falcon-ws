@@ -55,7 +55,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         this.projectID = projectID;
         this.srcLang = srcLang;
         this.tgtLang = tgtLang;
-        this.tgtSegment = tgtSegment;
+        this.tgtSegment = FalconUtil.stripEntities(tgtSegment);
     }
     /**
      * Update the SMT engine by outputing the source and target ten times to affect the probability calculations.
@@ -100,7 +100,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
             // URLDecoder.decode ensures the escaped characters like %20 are converted 
             //for (int i = 0; i < 10; i++)
             //{
-            os.write(URLDecoder.decode(srcSegment, "UTF-8") + "\n");
+            os.write(URLDecoder.decode(srcSegmentText, "UTF-8") + "\n");
             ot.write(URLDecoder.decode(tgtSegment, "UTF-8") + "\n");
             //}
             

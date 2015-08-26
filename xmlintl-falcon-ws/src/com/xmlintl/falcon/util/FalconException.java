@@ -21,6 +21,16 @@ public class FalconException extends Exception
      */
     private static final long serialVersionUID = -7258667574604494813L;
 
+    /**
+     * Default constructor.
+     * 
+     * @param e
+     *            the previous exception in the stack.
+     */
+    public FalconException(Throwable e)
+    {
+        super(e.getMessage(), e);
+    }
 
     /**
      * Default constructor.
