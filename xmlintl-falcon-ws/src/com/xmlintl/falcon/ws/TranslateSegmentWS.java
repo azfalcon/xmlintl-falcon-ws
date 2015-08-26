@@ -11,10 +11,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.hamcrest.core.IsInstanceOf;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.xmlintl.falcon.util.FalconException;
+import com.xmlintl.falcon.util.FalconServerNotRunningException;
+import com.xmlintl.falcon.util.FalconTimeoutException;
 import com.xmlintl.falcon.util.TranslateSegment;
 
 /**
@@ -73,6 +77,11 @@ public class TranslateSegmentWS extends HttpServlet
         log("srcLang: " + srcLang);
         log("tgtLang: " + tgtLang);
         log("segment: " + segment);
+        
+        if (segment == null)
+        {
+            log("######################## WARNING: segment is null - nothing to send to SMT");
+        }
 
         JsonObject jsonObject = new JsonObject();
 
@@ -81,50 +90,93 @@ public class TranslateSegmentWS extends HttpServlet
 //      gsonBuilder.setPrettyPrinting();
 
         Gson gson = gsonBuilder.create();
+        
+        TranslateSegment translateSegment = null;
 
-        try
+        if (segment != null)
         {
-            TranslateSegment translateSegment = new TranslateSegment(clientName, customerID, srcLang, tgtLang, segment, key);
-
-            gson = gsonBuilder.create();
-
-            jsonObject = new JsonObject();
-
-            String uuid = translateSegment.getUuid();
-
-            jsonObject.addProperty("UUID", uuid);
-
-            translateSegment.translate();
-
-            String translation = translateSegment.getTranslation();
-            
-            log("translation: " + translation);
-
-            jsonObject.addProperty("translation", translation);
-
-            String confidenceScore = translateSegment.getBleuScore();
-
-            if (confidenceScore != null)
+            try
             {
-                jsonObject.addProperty("confidenceScore", confidenceScore);
+                String webroot = getServletContext().getRealPath("/") + "WEB-INF/";
+                
+                log("WEBROOT set to: " + webroot);
+                
+                translateSegment = new TranslateSegment(clientName, customerID, srcLang, tgtLang, segment, key, webroot);
+
+                gson = gsonBuilder.create();
+
+                jsonObject = new JsonObject();
+
+                String uuid = translateSegment.getUuid();
+
+                jsonObject.addProperty("UUID", uuid);
+                
+                String translation = "";
+                
+                if (segment != null)
+                {
+                    
+                    translation = translateSegment.translate();
+                    
+                    log("translation: " + translation);
+                }
+
+                jsonObject.addProperty("translation", translation);
+                
+                if ((translation.isEmpty()) && (!segment.isEmpty())) // We are getting nothing back: need to restart the server.
+                {
+                    jsonObject.addProperty("error", "FAILED: No output restarting engine");
+                    
+                    String json = gson.toJson(jsonObject);
+
+                    out.println(json);
+                    
+                    translateSegment.checkEngine();
+                }
+                else
+                {
+                    String json = gson.toJson(jsonObject);
+
+                    out.println(json);
+                }
             }
+            catch (Exception e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                
+                if (e instanceof FalconServerNotRunningException)
+                {
+                    getServletContext().log("FalconTimeoutException occurred", e);
+                    
+                    jsonObject.addProperty("error", "FAILED: Timeout");
+                    
+                }
+                else
+                {
+                    getServletContext().log("An exception occurred in TranslateSegmentWS", e);
+                    
+                    jsonObject.addProperty("error", "FAILED");
+                }
+                
+                String json = gson.toJson(jsonObject);
 
-            String json = gson.toJson(jsonObject);
-
-            out.println(json);
-        }
-        catch (FalconException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            
-            getServletContext().log("An exception occurred in TranslateSegmentWS", e);
-            
-            jsonObject.addProperty("error", "FAILED");
-
-            String json = gson.toJson(jsonObject);
-
-            out.println(json);
+                out.println(json);
+                
+                if (e instanceof FalconServerNotRunningException)
+                {
+                    try
+                    {
+                        translateSegment.checkEngine();
+                    }
+                    catch (FalconException e1) // Not much we can do about this unfortunately except complain....
+                    {
+                        log(e1.getMessage());
+                        
+                        e1.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
