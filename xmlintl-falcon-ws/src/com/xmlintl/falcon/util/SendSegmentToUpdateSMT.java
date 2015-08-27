@@ -50,7 +50,7 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
      */
     public SendSegmentToUpdateSMT(String clientName, String customerID, String projectID, String srcLang, String tgtLang, String srcSegment, String tgtSegment, String key) throws FalconException
     {
-        super(clientName, customerID, srcLang, tgtLang, srcSegment, key);
+        super(clientName, customerID, srcLang, tgtLang, srcSegment, key, null);
         
         this.projectID = projectID;
         this.srcLang = srcLang;
@@ -87,109 +87,32 @@ public class SendSegmentToUpdateSMT extends TranslateSegment
         File ndfs = new File(srcTrainFilename);
         File ndft = new File(tgtTrainFilename);
         
-        InputStream is = null;
-        OutputStreamWriter os = null;
-        OutputStreamWriter ot = null;
-        
-        try
+        try (OutputStreamWriter os = new OutputStreamWriter( new FileOutputStream(ndfs));
+                        OutputStreamWriter   ot = new OutputStreamWriter( new FileOutputStream(ndft)))
         {
-            os = new OutputStreamWriter( new FileOutputStream(ndfs));
-            ot = new OutputStreamWriter( new FileOutputStream(ndft));
             
             // Remove the loop, we no longer need to biase it 10 times
             // URLDecoder.decode ensures the escaped characters like %20 are converted 
             //for (int i = 0; i < 10; i++)
             //{
-            os.write(URLDecoder.decode(srcSegmentText, "UTF-8") + "\n");
+            os.write(URLDecoder.decode(srcNormalizedText, "UTF-8") + "\n");
             ot.write(URLDecoder.decode(tgtSegment, "UTF-8") + "\n");
             //}
             
-            if (os != null)
-            {
-                try
-                {
-                    os.close();
-                }
-                catch (IOException e)
-                {
-                    logger.error(e.getMessage(), e);
-                }
-                
-            }
-            if (ot != null)
-            {
-                try
-                {
-                    ot.close();
-                }
-                catch (IOException e)
-                {
-                    logger.error(e.getMessage(), e);
-                }
-                
-            }
-            // "Usage: `basename $0` <src_lang> <tgt_lang> <train_filename> <engine_name>"
-            
-            log("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + " " + tgtLang + " " + uuid );
-            
-            ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang, uuid);
-            
-            Process decoder = pb.start();
-
-            is = decoder.getInputStream();
-
-            LineNumberReader reader = new LineNumberReader(new InputStreamReader(is, "UTF-8"));
-            
-            String outputLine = null;
-            
-            while ((outputLine = reader.readLine()) != null)
-            {
-                log(outputLine);
-            }
         }
         catch (Exception e)
         {
             log(e.getMessage());
             throw new FalconException(e.getMessage(), e);
         }
-        finally
-        {
-            if (is != null)
-            {
-                try
-                {
-                    is.close();
-                }
-                catch (IOException e)
-                {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (os != null)
-            {
-                try
-                {
-                    os.close();
-                }
-                catch (IOException e)
-                {
-                    logger.error(e.getMessage(), e);
-                }
-                
-            }
-            if (ot != null)
-            {
-                try
-                {
-                    ot.close();
-                }
-                catch (IOException e)
-                {
-                    logger.error(e.getMessage(), e);
-                }
-                
-            }
+        
+        log("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + " " + tgtLang + " " + uuid );
+        
+        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang, uuid);
+        
+        String output = executeScript(execScript, pb, 30000);
 
-        }
+        log(output);
+
     }
 }

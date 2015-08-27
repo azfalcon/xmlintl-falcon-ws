@@ -99,7 +99,7 @@ public class TranslateSegmentWS extends HttpServlet
             {
                 String webroot = getServletContext().getRealPath("/") + "WEB-INF/";
                 
-                log("WEBROOT set to: " + webroot);
+//                log("WEBROOT set to: " + webroot);
                 
                 translateSegment = new TranslateSegment(clientName, customerID, srcLang, tgtLang, segment, key, webroot);
 

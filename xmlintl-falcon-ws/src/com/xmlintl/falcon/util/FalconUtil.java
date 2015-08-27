@@ -53,7 +53,7 @@ public class FalconUtil
         { "&lt;", "<" },
         { "&gt;", ">" },
         { "&quot;", "\"" },
-        { "&apos", "'" },
+        { "&apos;", "'" },
         { "&amp;", "&" }
         
     };
@@ -129,7 +129,9 @@ public class FalconUtil
     {
         String normalizedSegment = null;
         
-        String xmlString = "<seg>" + segment + "</seg>";
+        String clean = segment.replaceAll("%20", " ");
+        
+        String xmlString = "<seg>" + clean + "</seg>";
         
         Document doc = readDocumentFromString(xmlString, false);
         
@@ -228,14 +230,14 @@ public class FalconUtil
             buff.append(text).append(' ');
         }
         
-        String tmp = convertSpecialSpaces2Normal(buff.toString()); // Convert all special width or non-breaking spaces to a single space character
+        String text = convertSpecialSpaces2Normal(buff.toString()); // Convert all special width or non-breaking spaces to a single space character
         
-        tmp = tmp.replaceAll("&", "&amp;");
-        
-        tmp = tmp.replace("<", "&lt;");
-        
-        String text = tmp.replace(">", "&gt;");
-        
+//        tmp = tmp.replaceAll("&", "&amp;");
+//        
+//        tmp = tmp.replace("<", "&lt;");
+//        
+//        String text = tmp.replace(">", "&gt;");
+//        
 
         return text;
     }
@@ -317,25 +319,27 @@ public class FalconUtil
     
     /**
      * Normalize the text separating out punctuation characters.
-     * @param text The text to be normalized.
+     * @param intext The text to be normalized.
      * @return The normalized text.
      */
-    public static String normalizeText(String text)
+    public static String normalizeText(String intext)
     {
+        String clean = stripEntities(intext);
+        
         StringBuilder stemmedBuff = new StringBuilder();
 
         char lastc = ' ';
         
         boolean termElm = false;
 
-        for (int i = 0, len = text.length(); i < len; i++)
+        for (int i = 0, len = clean.length(); i < len; i++)
         {
-            char c = text.charAt(i);
-
+            char c = clean.charAt(i);
+            
             if (c == '<')
             {
-                if (((i + "<term ".length() < len) && ("<term ".equals(text.startsWith("<term ", i)))) ||
-                    ((i + "</term>".length() < len) && ("</term>".equals(text.startsWith("</term>", i)))))
+                if ((clean.startsWith("<term ", i)) ||
+                    (clean.startsWith("</term>", i)))
                 {
                     termElm = true;
                     stemmedBuff.append(c);

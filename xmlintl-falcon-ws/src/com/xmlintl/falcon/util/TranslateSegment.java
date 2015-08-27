@@ -22,7 +22,9 @@ import it.uniroma1.lcl.babelnet.BabelSense;
 import it.uniroma1.lcl.jlt.Configuration;
 import it.uniroma1.lcl.jlt.util.Language;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,8 +32,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -51,6 +56,8 @@ public class TranslateSegment extends FalconAbstract
     /** Hash map of clientName and key values so that we do not have to constantly re-read the uuid files. */
     protected static HashMap<String, String> keyMap = new HashMap<String, String>();
     
+    protected String portStr;
+    
     protected String clientName;
     
     protected String customerID;
@@ -63,7 +70,7 @@ public class TranslateSegment extends FalconAbstract
     
     protected Language babelnetTgtLang;
     
-    protected String srcSegmentText;
+    protected String srcNormalizedText;
     
     protected String translation;
     
@@ -98,10 +105,10 @@ public class TranslateSegment extends FalconAbstract
         
         Path workingDirectory=Paths.get(".").toAbsolutePath();
         
-        logger.info("#############################" + workingDirectory.toString());
-        
         if (bn == null) // Kick off connection to BabelNet.
         {
+            logger.info("#############################" + workingDirectory.toString());
+            
             Configuration jltConfiguration = Configuration.getInstance();
             jltConfiguration.setConfigurationFile(new File(webroot + "config/jlt.properties"));
 
@@ -118,7 +125,7 @@ public class TranslateSegment extends FalconAbstract
         this.customerID = customerID;
         this.srcLang = srcLang;
         this.tgtLang = tgtLang;
-        this.srcSegmentText = FalconUtil.normalizeSegment(srcSegmentText);
+        this.srcNormalizedText = FalconUtil.normalizeSegment(srcSegmentText);
         
         String src = srcLang.toUpperCase();
 
@@ -137,7 +144,7 @@ public class TranslateSegment extends FalconAbstract
         
         uuid = FalconUtil.getUUID();
         
-        srcSegment = new Segment(srcSegmentText, null, babelnetSrcLang);
+        srcSegment = new Segment(srcNormalizedText, null, babelnetSrcLang);
     }
     /**
      * Check XTM license key.
@@ -210,6 +217,15 @@ public class TranslateSegment extends FalconAbstract
         ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang + "_" + tgtLang);
         
         pid = executeScript(execScript, pb, 3000);
+        
+        int c = pid.charAt(0);
+        
+        logger.info("PID = " + pid + " len=" + pid.length() + " " + c );
+        
+        if ((pid.length() == 1) && (c == 10))
+        {
+            pid = null;
+        }
 
         return pid;
     }
@@ -223,7 +239,7 @@ public class TranslateSegment extends FalconAbstract
         
         String pid = getServerPID();
         
-        if (pid != null) 
+        if (pid != null)
         {
             restartEngine(true);
         }
@@ -252,13 +268,22 @@ public class TranslateSegment extends FalconAbstract
             restarting = "$$$$$$$$$$$$$ Starting";
         }
             
-        logger.info(restarting + " engine for: " + clientName + " " + customerID + " " + srcLang + "_" + tgtLang);
+        logger.info(restarting + " engine for: " + clientName + " " + customerID + " " + srcLang + "_" + tgtLang + " " + portStr);
  
         // /usr/local/share/SMT/scripts/restart_moses_server.sh Falcon 2147 en_fr
         
-        logger.info("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + "_" + tgtLang);
+        logger.info("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + "_" + tgtLang + " " + portStr);
         
-        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang + "_" + tgtLang);
+        ProcessBuilder pb = null;
+        
+        if (restart == false)
+        {
+            pb = new ProcessBuilder(execScript, clientName, customerID, srcLang + "_" + tgtLang, portStr);
+        }
+        else
+        {
+            pb = new ProcessBuilder(execScript, clientName, customerID, srcLang + "_" + tgtLang);
+        }
         
         executeScript(execScript, pb, 300000);
     }
@@ -282,6 +307,11 @@ public class TranslateSegment extends FalconAbstract
             is = shell.getInputStream();
             
             shellOutput = readInputStreamWithTimeout(is, timeout); // 5 mins timeout
+            
+            if (shellOutput != null)
+            {
+                shellOutput = shellOutput.replace("\n", "");
+            }
             
             int shellExitStatus = shell.exitValue();
             
@@ -326,9 +356,9 @@ public class TranslateSegment extends FalconAbstract
 
         logger.info("Invoking command: " + execScript + " " + clientName + " " + customerID + " " + srcLang + " " + tgtLang);
 
-        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang + " " + tgtLang);
+        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang);
         
-        output = executeScript(execScript, pb, 3000);
+        output = executeScript(execScript, pb, 30000);
 
         log(output);
 
@@ -366,9 +396,9 @@ public class TranslateSegment extends FalconAbstract
             
             if (in.read(buffer) != -1)
             {
-                String portNoStr = new String(buffer);
+                portStr = new String(buffer);
                 
-                int port = Integer.parseInt(portNoStr);
+                int port = Integer.parseInt(portStr);
                 
                 InetSocketAddress endpoint = new InetSocketAddress("37.187.134.20", port);
                 
@@ -405,11 +435,21 @@ public class TranslateSegment extends FalconAbstract
         String engineID = clientName + "/" + customerID + "/" + srcLang + "_" + tgtLang;
 
         Socket socket = openSocket(engineID);
-
-        try (DataOutputStream os = new DataOutputStream(socket.getOutputStream()); BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));)
+        
+        Charset cs = Charset.forName("UTF-8");
+        
+        try (BufferedWriter bos = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), cs)); BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));)
         {
-            logger.info("Writing: " + srcSegment.getTokenized() + " to socket: " + socket.getPort());
-            os.writeBytes(srcSegment.getTokenized() + "\n");
+            String tokenizedText = srcSegment.getTokenized();
+            
+            logger.info("Writing: " + tokenizedText + " to socket: " + socket.getPort());
+            
+            byte[] bytes = tokenizedText.getBytes("UTF8");
+            
+            bos.write(tokenizedText);
+            bos.newLine();
+            
+            bos.flush();
 
             logger.info("waiting for the decoder output");
 
@@ -430,6 +470,8 @@ public class TranslateSegment extends FalconAbstract
             }
 
             String xlate = buff.toString();
+            
+//            String xlate = is.readLine();
 
             if (xlate == null)
             {
@@ -606,9 +648,9 @@ public class TranslateSegment extends FalconAbstract
 
         String execScript = scriptsDir + SEGMENT_DECODE;
 
-        logger.info("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + " " + tgtLang + " '" + srcSegmentText + "' " + uuid);
+        logger.info("Invoking: " + execScript + " " + clientName + " " + customerID + " " + srcLang + " " + tgtLang + " '" + srcNormalizedText + "' " + uuid);
 
-        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang, srcSegmentText, uuid);
+        ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang, srcNormalizedText, uuid);
         
         String translation = executeScript(execScript, pb, 15000);
         

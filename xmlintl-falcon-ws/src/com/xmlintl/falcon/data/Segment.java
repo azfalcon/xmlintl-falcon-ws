@@ -73,33 +73,33 @@ public class Segment implements Cloneable
     /**
      * Constructor.
      * @param stemmer The stemmer object.
-     * @param segment The segment itself.
+     * @param text The segment itself.
      * @param stopwords The list of stopwords.
      * @param segmentNumber The segment number.
      * @param lang The segment language.
      */
-    public Segment(String segment, HashSet<String> stopwords, Language lang)
+    public Segment(String text, HashSet<String> stopwords, Language lang)
     {
         this.language = lang;
 
         String isoLang = lang.toString().toLowerCase();
 
-        allUpperCase = FalconUtil.allUpperCase(segment);
+        allUpperCase = FalconUtil.allUpperCase(text);
 
-        this.full = segment;
+        this.full = text;
 
-        tokenized = FalconUtil.normalizeText(segment);
+        tokenized = FalconUtil.normalizeText(text);
 
-        String lc = segment.replace('-', ' ');
+        String lc = text.replace('-', ' ');
 
         this.fullLc = lc.toLowerCase();
         
-        if ((FalconUtil.isCJKLanguage(isoLang)) && (FalconUtil.containsCJKChars(segment)))
+        if ((FalconUtil.isCJKLanguage(isoLang)) && (FalconUtil.containsCJKChars(text)))
         {
             cjkText = true;
         }
         
-        nonLatinText = FalconUtil.mainlyNonLatinChars(segment);
+        nonLatinText = FalconUtil.mainlyNonLatinChars(text);
         
         if (cjkText)
         {

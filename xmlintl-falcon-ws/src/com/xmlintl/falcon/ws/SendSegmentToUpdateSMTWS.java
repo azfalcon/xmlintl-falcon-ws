@@ -61,6 +61,9 @@ public class SendSegmentToUpdateSMTWS extends HttpServlet {
         String srcSegment = request.getParameter("srcSegment");
         String tgtSegment = request.getParameter("tgtSegment");
         String key = request.getParameter("key");
+        
+        srcSegment.replaceAll("%20", " ");
+        tgtSegment.replaceAll("%20", " ");
        
         log("clientName: " + clientName);
         log("customerID: " + customerID);
