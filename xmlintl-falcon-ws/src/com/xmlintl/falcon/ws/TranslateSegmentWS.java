@@ -11,14 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.hamcrest.core.IsInstanceOf;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.xmlintl.falcon.util.FalconEngineRebbotingException;
 import com.xmlintl.falcon.util.FalconException;
 import com.xmlintl.falcon.util.FalconServerNotRunningException;
-import com.xmlintl.falcon.util.FalconTimeoutException;
 import com.xmlintl.falcon.util.TranslateSegment;
 
 /**
@@ -67,6 +65,12 @@ public class TranslateSegmentWS extends HttpServlet
         String clientName = request.getParameter("clientName");
         String segment = request.getParameter("segment");
         String customerID = request.getParameter("customerID");
+        
+        if ("DGT".equals(clientName))
+        {
+            customerID = "standard";
+        }
+
         String srcLang = request.getParameter("srcLang");
         String tgtLang = request.getParameter("tgtLang");
         String key = request.getParameter("key");
@@ -125,7 +129,7 @@ public class TranslateSegmentWS extends HttpServlet
                 
                 if ((translation.isEmpty()) && (!segment.isEmpty())) // We are getting nothing back: need to restart the server.
                 {
-                    jsonObject.addProperty("error", "FAILED: No output restarting engine");
+                    jsonObject.addProperty("error", "Please wait: restarting SMT server");
                     
                     String json = gson.toJson(jsonObject);
 
@@ -142,15 +146,18 @@ public class TranslateSegmentWS extends HttpServlet
             }
             catch (Exception e)
             {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+//                e.printStackTrace();
                 
                 if (e instanceof FalconServerNotRunningException)
                 {
-                    getServletContext().log("FalconTimeoutException occurred", e);
+                    log("FalconTimeoutException occurred", e);
                     
-                    jsonObject.addProperty("error", "FAILED: Timeout");
+                    jsonObject.addProperty("error", "Please wait: restarting SMT server");
                     
+                }
+                else if ( e instanceof FalconEngineRebbotingException)
+                {
+                    jsonObject.addProperty("error", "Please wait: restarting SMT server");
                 }
                 else
                 {
@@ -161,9 +168,9 @@ public class TranslateSegmentWS extends HttpServlet
                 
                 String json = gson.toJson(jsonObject);
 
-                out.println(json);
-                
-                if (e instanceof FalconServerNotRunningException)
+                out.println(json); // We have told the user
+
+                if (e instanceof FalconServerNotRunningException) // Check to see if we need to restart the server
                 {
                     try
                     {
@@ -176,6 +183,8 @@ public class TranslateSegmentWS extends HttpServlet
                         e1.printStackTrace();
                     }
                 }
+                
+
             }
         }
     }

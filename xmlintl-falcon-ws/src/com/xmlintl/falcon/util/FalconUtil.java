@@ -331,10 +331,32 @@ public class FalconUtil
         char lastc = ' ';
         
         boolean termElm = false;
+        
+        String[] words = intext.split(" ");
+        
+        boolean lcFirstWord = true;
+        
+        if (words.length > 0)
+        {
+            String firstWord = words[0];
+            
+            if ((allUpperCase(firstWord)) || (firstWord.startsWith("UNK")))
+            {
+                lcFirstWord = false;
+            }
+        }
 
         for (int i = 0, len = clean.length(); i < len; i++)
         {
             char c = clean.charAt(i);
+            
+            if ((i == 0) && (lcFirstWord))
+            {
+                if (Character.isUpperCase(c))
+                {
+                    c = Character.toLowerCase(c);
+                }
+            }
             
             if (c == '<')
             {

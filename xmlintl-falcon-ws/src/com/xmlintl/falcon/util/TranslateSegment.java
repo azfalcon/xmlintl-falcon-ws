@@ -10,7 +10,6 @@ package com.xmlintl.falcon.util;
 
 import static com.xmlintl.falcon.util.CommonDefines.CREATE_NEW_ENGINE;
 import static com.xmlintl.falcon.util.CommonDefines.GET_SERVER_PID;
-import static com.xmlintl.falcon.util.CommonDefines.OUTPUT;
 import static com.xmlintl.falcon.util.CommonDefines.RESTART_SERVER;
 import static com.xmlintl.falcon.util.CommonDefines.SCRIPTS_DIR;
 import static com.xmlintl.falcon.util.CommonDefines.SEGMENT_DECODE;
@@ -22,24 +21,23 @@ import it.uniroma1.lcl.babelnet.BabelSense;
 import it.uniroma1.lcl.jlt.Configuration;
 import it.uniroma1.lcl.jlt.util.Language;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import com.xmlintl.falcon.data.Segment;
@@ -80,11 +78,15 @@ public class TranslateSegment extends FalconAbstract
     
     protected String key;
     
+    protected String engineID;
+    
     protected Segment srcSegment;
     
     protected Segment tgtSegment;
     
     protected static BabelNet bn;
+    
+    protected static HashSet<String> engineRestartTable = new HashSet<String>();
     
     public static final String FRENCH = "fr";
     
@@ -98,8 +100,9 @@ public class TranslateSegment extends FalconAbstract
      * @param key The token key value.
      * @param webroot 
      * @throws FalconException If we cannot initialize the Falcon properties environment correctly.
+     * @throws FalconEngineRebbotingException 
      */
-    public TranslateSegment(String clientName, String customerID, String srcLang, String tgtLang, String srcSegmentText, String key, String webroot) throws FalconException
+    public TranslateSegment(String clientName, String customerID, String srcLang, String tgtLang, String srcSegmentText, String key, String webroot) throws FalconException, FalconEngineRebbotingException
     {
         super();
         
@@ -126,6 +129,13 @@ public class TranslateSegment extends FalconAbstract
         this.srcLang = srcLang;
         this.tgtLang = tgtLang;
         this.srcNormalizedText = FalconUtil.normalizeSegment(srcSegmentText);
+        
+        this.engineID = clientName + "/" + customerID + "/" + srcLang + "_" + tgtLang;
+
+        if (engineRestartTable.contains(engineID))
+        {
+            throw new FalconEngineRebbotingException("engine " + engineID + " is being rebooted");
+        }
         
         String src = srcLang.toUpperCase();
 
@@ -218,13 +228,23 @@ public class TranslateSegment extends FalconAbstract
         
         pid = executeScript(execScript, pb, 3000);
         
-        int c = pid.charAt(0);
-        
-        logger.info("PID = " + pid + " len=" + pid.length() + " " + c );
-        
-        if ((pid.length() == 1) && (c == 10))
+        if (pid != null)
         {
-            pid = null;
+            if (pid.isEmpty())
+            {
+                pid = null;
+            }
+            else
+            {
+                int c = pid.charAt(0);
+                
+                logger.info("PID = " + pid + " len=" + pid.length() + " " + c );
+                
+                if ((pid.length() == 1) && (c == 10))
+                {
+                    pid = null;
+                }
+            }
         }
 
         return pid;
@@ -237,23 +257,29 @@ public class TranslateSegment extends FalconAbstract
     {
         logger.info("Checking if server is running");// First check if the server is running
         
-        String pid = getServerPID();
-        
-        if (pid != null)
+        if (engineRestartTable.contains(engineID))
         {
-            restartEngine(true);
+            logger.info("engine: " + engineID + " is currently being restarted");
         }
-        else // no server running
+        else
         {
-            restartEngine(false);
+            String pid = getServerPID();
+            
+            if (pid != null)
+            {
+                restartEngine(true);
+            }
+            else // no server running
+            {
+                restartEngine(false);
+            }
         }
     }
     
     /**
      * Restart the engine.
-     * @throws FalconException If we cannot restart the engine.
      */
-    public void restartEngine(boolean restart) throws FalconException
+    public void restartEngine(boolean restart)
     {
         
         String scriptsDir = properties.getProperty(SCRIPTS_DIR);
@@ -261,7 +287,6 @@ public class TranslateSegment extends FalconAbstract
         String execScript = scriptsDir + RESTART_SERVER;
         
         String restarting = "########### Restarting";
-        
         if (restart == false)
         {
             execScript = scriptsDir + START_SERVER;
@@ -285,7 +310,36 @@ public class TranslateSegment extends FalconAbstract
             pb = new ProcessBuilder(execScript, clientName, customerID, srcLang + "_" + tgtLang);
         }
         
-        executeScript(execScript, pb, 300000);
+        if (engineRestartTable.contains(engineID))
+        {
+            logger.info("engine: " + engineID + " is currently being restarted");
+        }
+        else
+        {
+            synchronized (engineRestartTable)
+            {
+                engineRestartTable.add(engineID);
+
+                try
+                {
+                    executeScript(execScript, pb, 300000);
+                }
+                catch (FalconException e)
+                {
+                    logger.error(e.getMessage());
+
+                    if (restart) // Failed to restart - try start
+                    {
+                        restartEngine(false);
+                    }
+                }
+                finally
+                {
+                    engineRestartTable.remove(engineID);
+                }
+            }
+        }
+
     }
     /**
      * Execute a bash shell script.
@@ -320,7 +374,16 @@ public class TranslateSegment extends FalconAbstract
                 throw new FalconException("Failed to run: " + execScript + " : " + shellOutput);
             }
             
-            logger.info("###########Script successfully completed");
+            List<String> cmds = pb.command();
+            
+            StringBuilder buff = new StringBuilder();
+            
+            for (String cmd: cmds)
+            {
+                buff.append(cmd).append(' ');
+            }
+            
+            logger.info("###########Script " + buff.toString().trim() + " successfully completed");
         }
         catch (IOException e)
         {
@@ -358,19 +421,38 @@ public class TranslateSegment extends FalconAbstract
 
         ProcessBuilder pb = new ProcessBuilder(execScript, clientName, customerID, srcLang, tgtLang);
         
-        output = executeScript(execScript, pb, 30000);
-
+        synchronized (engineRestartTable)
+        {
+            engineRestartTable.add(engineID);
+        }
+        
+        try
+        {
+            output = executeScript(execScript, pb, 30000);
+        }
+        catch (Exception e)
+        {
+            throw new FalconException(e.getMessage(), e);
+        }
+        
+        finally
+        {
+            synchronized (engineRestartTable)
+            {
+                engineRestartTable.remove(engineID);
+            }
+        }
+        
         log(output);
 
     }
     /**
      * Open the socket to the appropriate moses decoder server.
-     * @param engineID The engineID consisting of clientName/customerID/src_tgt/
      * @return The socket.
      * @throws FalconServerNotRunningException If any errors occurr.
      * @throws FalconException If we cannot create a new engine if it is not there.
      */
-    private Socket openSocket(String engineID) throws FalconException, FalconServerNotRunningException
+    private Socket openSocket() throws FalconException, FalconServerNotRunningException
     {
         Socket socket = new Socket();
         
@@ -402,15 +484,35 @@ public class TranslateSegment extends FalconAbstract
                 
                 InetSocketAddress endpoint = new InetSocketAddress("37.187.134.20", port);
                 
-                socket.connect(endpoint, 1000); //1 secs timeout for connection.
-                
-                socket.setSoTimeout(15000); // 15 secs timeout for read
+                for (int i = 0; i < 50; i++)
+                {
+                    try
+                    {
+                        socket.connect(endpoint, 5000); //1 secs timeout for connection.
+                        
+                        socket.setSoTimeout(15000); // 15 secs timeout for read
+                        
+                        break;
+                    }
+                    catch (ConnectException e)
+                    {
+                        if ((i < 49) && ("Connection refused".equals(e.getMessage())))
+                        {
+                            Thread.sleep(1000);
+                            continue;
+                        }
+                        else
+                        {
+                            throw new FalconServerNotRunningException("Could not open port: " + portStr);
+                        }
+                    }
+                }
                 
                 logger.info("Opened new socket on port: " + port);
             }
             else
             {
-                throw new FalconServerNotRunningException("Could not read: " + portFileName);
+                 throw new FalconServerNotRunningException("Could not read: " + portFileName);
             }
             
          }
@@ -431,10 +533,8 @@ public class TranslateSegment extends FalconAbstract
     public String translate() throws FalconServerNotRunningException, FalconException
     {
         // XTM: <x id="x460"/><term translation="zapiekanka_translation">zapiekanka</term> z warzyw<x id="x461"/> â»<x id="x462"/><x id="x463"/>
-
-        String engineID = clientName + "/" + customerID + "/" + srcLang + "_" + tgtLang;
-
-        Socket socket = openSocket(engineID);
+        
+        Socket socket = openSocket();
         
         Charset cs = Charset.forName("UTF-8");
         
@@ -444,9 +544,10 @@ public class TranslateSegment extends FalconAbstract
             
             logger.info("Writing: " + tokenizedText + " to socket: " + socket.getPort());
             
-            byte[] bytes = tokenizedText.getBytes("UTF8");
+//            byte[] bytes = tokenizedText.getBytes("UTF8");
             
             bos.write(tokenizedText);
+            
             bos.newLine();
             
             bos.flush();
@@ -515,6 +616,8 @@ public class TranslateSegment extends FalconAbstract
         
         char openClosePuncChar = ' ';
         
+        boolean first = true;
+        
         for (Word word: words) // (The cat (feline) sat on the "Burberry" coloured, bright red mat.)
         {
             String wordStr = word.getTheWord();
@@ -522,6 +625,20 @@ public class TranslateSegment extends FalconAbstract
             if (word.isUnkWord())
             {
                 wordStr = lookUpInBabelNet(word);
+            }
+            
+            if (first)
+            {
+                first = false;
+                
+                c = wordStr.charAt(0);
+                
+                if ((Character.isLetter(c)) && (Character.isLowerCase(c)))
+                {
+                    c = Character.toUpperCase(c);
+                    
+                    wordStr = c + wordStr.substring(1);
+                }
             }
 
             if (word.isPunctuation())
@@ -598,39 +715,43 @@ public class TranslateSegment extends FalconAbstract
     public String lookUpInBabelNet(Word word)
     {
         String wordStr = word.getTheWord(); 
-        
-        String original = wordStr;
-        
-        if (!word.isPunctuation()) // not a punctuation char
-        {
-            List<BabelSense> senses = bn.getSenses(babelnetSrcLang, wordStr);
 
-            for (BabelSense sense : senses)
+        if (!FalconUtil.allUpperCase(wordStr)) // Don't look up all Upper case words
+        {
+            String original = wordStr;
+            
+            if (!word.isPunctuation()) // not a punctuation char
             {
-                if (babelnetTgtLang == sense.getLanguage())
+                List<BabelSense> senses = bn.getSenses(babelnetSrcLang, wordStr);
+
+                for (BabelSense sense : senses)
                 {
-                    wordStr = sense.getLemma();
-                    
-                    char firstLetter = original.charAt(0);
-                    
-                    if (Character.isUpperCase(firstLetter))
+                    if (babelnetTgtLang == sense.getLanguage())
                     {
-                        char fc = wordStr.charAt(0);
+                        wordStr = sense.getLemma();
                         
-                        fc = Character.toUpperCase(fc);
+                        char firstLetter = original.charAt(0);
                         
-                        StringBuilder newStr = new StringBuilder(wordStr.length());
+                        if (Character.isUpperCase(firstLetter))
+                        {
+                            char fc = wordStr.charAt(0);
+                            
+                            fc = Character.toUpperCase(fc);
+                            
+                            StringBuilder newStr = new StringBuilder(wordStr.length());
+                            
+                            newStr.append(fc).append(wordStr.substring(1));
+                            
+                            wordStr = newStr.toString();
+                        }
                         
-                        newStr.append(fc).append(wordStr.substring(1));
-                        
-                        wordStr = newStr.toString();
+                        break;
                     }
-                    
-                    break;
                 }
             }
         }
         
+       
         wordStr = wordStr.replace('_', ' ');
         
         return wordStr;
@@ -688,6 +809,11 @@ public class TranslateSegment extends FalconAbstract
             }
             
             String str = new String(b, 0, readLength, "UTF-8");
+            
+            if ((str != null) && (str.startsWith("SUCCESS")))
+            {
+                break;
+            }
             
             buff.append(str);
             
